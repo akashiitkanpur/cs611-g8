@@ -1,0 +1,68 @@
+$ python run_baseline.py --variants --fresh
+# exit 0, 0.3 s
+
+W (100, 100)  X (100, 256)  formats 11  dataset C  mode w
+
+Y relative error (%) on all of X_cal  [held-out odd columns in brackets]
+format                         ocp             ceil              opt          opt_out  bits/el
+MXFP6_E3M2           5.439 [ 5.47]    5.236 [ 5.26]    5.236 [ 5.26]    5.234 [ 5.26]     6.32
+MXFP6_E2M3           3.079 [ 3.10]    3.103 [ 3.13]    3.058 [ 3.08]    3.060 [ 3.08]     6.32
+MXFP6_E4M1          11.088 [11.15]   10.176 [10.24]   10.176 [10.24]   10.163 [10.23]     6.32
+MXINT6               4.047 [ 4.05]    4.168 [ 4.17]    3.896 [ 3.94]    3.894 [ 3.94]     6.32
+BFP6                 3.464 [ 3.48]    3.574 [ 3.60]    3.403 [ 3.44]    3.402 [ 3.44]     6.28
+MXFP6_E4M1_v192     11.088 [11.15]   10.176 [10.24]   10.176 [10.24]   10.163 [10.23]     6.32
+MXFP6_E4M1_nan1     20.722 [20.66]   10.176 [10.24]   10.176 [10.24]   10.160 [10.22]     6.32
+BFP6_g32e8           4.047 [ 4.05]    4.168 [ 4.17]    3.896 [ 3.94]    3.894 [ 3.94]     6.32
+BFP6_b32_ceil        4.047 [ 4.05]    4.168 [ 4.17]    3.896 [ 3.94]    3.894 [ 3.94]     6.32
+BFP6_row             5.162 [ 5.17]    5.340 [ 5.36]    4.693 [ 4.68]    4.693 [ 4.68]     6.08
+MXINT6_tc            4.048 [ 4.05]    4.168 [ 4.17]    3.850 [ 3.88]    3.864 [ 3.91]     6.32
+
+Element counts under the class 'ocp' rule (Lecture 19 definitions: range = out of range before rounding, saturated = rounded value clipped):
+  MXFP6_E3M2        range    96   saturated    43   zeroed    66   subnormal   342   clamped blocks   0
+  MXFP6_E2M3        range    43   saturated    20   zeroed   461   subnormal  4282   clamped blocks   0
+  MXFP6_E4M1        range   245   saturated    96   zeroed     1   subnormal     1   clamped blocks   0
+  MXINT6            range    20   saturated     8   zeroed   891   subnormal     0   clamped blocks   0
+  BFP6              range    33   saturated    10   zeroed   748   subnormal     0   clamped blocks   0
+  MXFP6_E4M1_v192   range   245   saturated    96   zeroed     1   subnormal     1   clamped blocks   0
+  MXFP6_E4M1_nan1   range   927   saturated   496   zeroed     1   subnormal     1   clamped blocks   0
+  BFP6_g32e8        range    20   saturated     8   zeroed   891   subnormal     0   clamped blocks   0
+  BFP6_b32_ceil     range    20   saturated     8   zeroed   891   subnormal     0   clamped blocks   0
+  BFP6_row          range     6   saturated     3   zeroed  1114   subnormal     0   clamped blocks   0
+  MXINT6_tc         range    15   saturated     6   zeroed   891   subnormal     0   clamped blocks   0
+
+Ranking, each format at its best policy (Y error on all of X_cal):
+  1. MXFP6_E2M3         3.058%  (opt)
+  2. BFP6               3.403%  (opt)
+  3. MXINT6_tc          3.850%  (opt)
+  4. MXINT6             3.896%  (opt)
+  5. BFP6_g32e8         3.896%  (opt)
+  6. BFP6_b32_ceil      3.896%  (opt)
+  7. BFP6_row           4.693%  (opt)
+  8. MXFP6_E3M2         5.236%  (opt)
+  9. MXFP6_E4M1_v192   10.176%  (ceil)
+  10. MXFP6_E4M1_nan1   10.176%  (ceil)
+  11. MXFP6_E4M1        10.176%  (ceil)
+Ranking under the class 'ocp' rule only:
+  1. MXFP6_E2M3         3.079%
+  2. BFP6               3.464%
+  3. MXINT6             4.047%
+  4. BFP6_g32e8         4.047%
+  5. BFP6_b32_ceil      4.047%
+  6. MXINT6_tc          4.048%
+  7. BFP6_row           5.162%
+  8. MXFP6_E3M2         5.439%
+  9. MXFP6_E4M1_v192   11.088%
+  10. MXFP6_E4M1        11.088%
+  11. MXFP6_E4M1_nan1   20.722%
+
+BFP 32|8|5 (BFP6_g32e8) vs MXINT6: identical under policies ['ocp', 'ceil', 'opt', 'opt_out']
+BFP6 (16|4|5, the candidate) vs MXINT6 under ocp: 3.464% vs 4.047%
+Cost of this exhaustive run: 1,100,000 element roundings + 112,640,000 MACs
+
+Saved /home/claude/cs611-g8/results/baseline_C.csv / .json
+
+[stderr]
+
+exhaustive[w]:   0%|          | 0/44 [00:00<?, ?it/s]
+exhaustive[w]:  73%|███████▎  | 32/44 [00:00<00:00, 311.82it/s]
+exhaustive[w]: 100%|██████████| 44/44 [00:00<00:00, 319.61it/s]

@@ -1,0 +1,14 @@
+format,"definition g|e|m, exponent rule, rounding",bits/elem,held-out Y err % (ocp),(ceil),(opt)
+BFP6,"16|4|5 floor, RNE (candidate)",6.28,3.4837145803723644,3.59549071306471,3.4373318434964273
+BFP6_g32e8,"32|8|5 floor, RNE (= MXINT6)",6.32,4.05357601310755,4.173606689949301,3.9378536910890043
+BFP6_b32_ceil,"32|8|5 ceil, RNE (v1 BFP6)",6.32,4.05357601310755,4.173606689949301,3.9378536910890043
+BFP6_row,"100|8|5 ceil, RNE (one block per row)",6.08,5.166470057682297,5.362060630992576,4.678519720651517
+MXINT6,reference: MXINT6,6.32,4.05357601310755,4.173606689949301,3.9378536910890043
+ablation g=16,"16|4|5 exp floor, rne",6.28,3.4837145803723644,,
+ablation g=16,"16|4|5 exp floor, trunc",6.28,6.635595785458277,,
+ablation g=16,"16|4|5 exp floor+1, rne",6.28,6.936529706711478,,
+ablation g=16,"16|4|5 exp floor+1, trunc",6.28,13.051420064713993,,
+ablation g=32,"32|8|5 exp floor, rne",6.32,4.05357601310755,,
+ablation g=32,"32|8|5 exp floor, trunc",6.32,7.7755176180928265,,
+ablation g=32,"32|8|5 exp floor+1, rne",6.32,8.186462501217788,,
+ablation g=32,"32|8|5 exp floor+1, trunc",6.32,15.243307554041635,,

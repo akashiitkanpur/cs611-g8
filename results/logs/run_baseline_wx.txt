@@ -1,0 +1,42 @@
+$ python run_baseline.py --mode wx --fresh
+# exit 0, 0.3 s
+
+W (100, 100)  X (100, 256)  formats 5  dataset C  mode wx
+
+Y relative error (%) on all of X_cal  [held-out odd columns in brackets]
+format                         ocp             ceil              opt          opt_out  bits/el
+MXFP6_E3M2           7.712 [ 7.70]    7.398 [ 7.41]    7.398 [ 7.41]    7.393 [ 7.41]     6.32
+MXFP6_E2M3           4.224 [ 4.24]    4.241 [ 4.26]    4.191 [ 4.21]    4.192 [ 4.21]     6.32
+MXFP6_E4M1          15.872 [15.93]   14.412 [14.58]   14.412 [14.58]   14.391 [14.55]     6.32
+MXINT6               5.166 [ 5.22]    5.358 [ 5.40]    4.960 [ 5.05]    4.959 [ 5.05]     6.32
+BFP6                 4.478 [ 4.56]    4.615 [ 4.68]    4.394 [ 4.48]    4.391 [ 4.48]     6.28
+
+Element counts under the class 'ocp' rule (Lecture 19 definitions: range = out of range before rounding, saturated = rounded value clipped):
+  MXFP6_E3M2        range    96   saturated    43   zeroed    66   subnormal   342   clamped blocks   0
+  MXFP6_E2M3        range    43   saturated    20   zeroed   461   subnormal  4282   clamped blocks   0
+  MXFP6_E4M1        range   245   saturated    96   zeroed     1   subnormal     1   clamped blocks   0
+  MXINT6            range    20   saturated     8   zeroed   891   subnormal     0   clamped blocks   0
+  BFP6              range    33   saturated    10   zeroed   748   subnormal     0   clamped blocks   0
+
+Ranking, each format at its best policy (Y error on all of X_cal):
+  1. MXFP6_E2M3         4.191%  (opt)
+  2. BFP6               4.394%  (opt)
+  3. MXINT6             4.960%  (opt)
+  4. MXFP6_E3M2         7.398%  (opt)
+  5. MXFP6_E4M1        14.412%  (ceil)
+Ranking under the class 'ocp' rule only:
+  1. MXFP6_E2M3         4.224%
+  2. BFP6               4.478%
+  3. MXINT6             5.166%
+  4. MXFP6_E3M2         7.712%
+  5. MXFP6_E4M1        15.872%
+BFP6 (16|4|5, the candidate) vs MXINT6 under ocp: 4.478% vs 5.166%
+Cost of this exhaustive run: 1,780,000 element roundings + 51,200,000 MACs
+
+Saved /home/claude/cs611-g8/results/baseline_C_wx.csv / .json
+
+[stderr]
+
+exhaustive[wx]:   0%|          | 0/20 [00:00<?, ?it/s]
+exhaustive[wx]:  80%|████████  | 16/20 [00:00<00:00, 154.22it/s]
+exhaustive[wx]: 100%|██████████| 20/20 [00:00<00:00, 161.27it/s]
