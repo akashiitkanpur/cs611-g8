@@ -4,7 +4,9 @@ Picks the best 6-bit format (MXFP6 E3M2 / E2M3 / E4M1, MXINT6, BFP6) for W_C,
 using a histogram-based predictor instead of brute-force quantization.
 
 ## Requirements
-Python 3.8+ and numpy (`pip install numpy`). Nothing else.
+Python 3.8+ and numpy; matplotlib for the figures; tqdm optional for progress bars:
+
+    python -m pip install numpy matplotlib tqdm
 
 ## Data
 Put `W_C.npy` and `X_cal.npy` in `data/` (already included), or pass

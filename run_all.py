@@ -303,7 +303,14 @@ def step_scripts(a):
             failed.append(s)
     if failed:
         print(f"  WARNING: these scripts exited with an error (see results/logs/): {failed}")
-    return outs
+        for s in failed:
+            with open(os.path.join(LOGS, s.replace(".py", ".txt"))) as f:
+                last = [l for l in f.read().strip().splitlines() if l.strip()][-1]
+            print(f"    {s}: {last}")
+            if "No module named" in last:
+                print(f"    -> install it:  python -m pip install {last.split(chr(39))[1]}")
+        print("  This step is NOT checkpointed, so the next run retries it.")
+    return outs, not failed
 
 
 def step_manifest(a):
@@ -372,9 +379,13 @@ def main():
             continue
         t0 = time.perf_counter()
         print(f"\n[{name}]")
-        outs = fn(a)
+        res = fn(a)
+        outs, ok = res if isinstance(res, tuple) else (res, True)
         for o in outs:
             print(f"  -> {os.path.relpath(o, HERE)}")
+        if not ok:                                      # a failed step is retried on the next run
+            state.pop(name, None)
+            continue
         state[name] = dict(fingerprint=fp, outputs=outs, seconds=round(time.perf_counter() - t0, 2))
         with open(STATE, "w") as f:                     # checkpoint after every step
             json.dump(state, f, indent=1)
