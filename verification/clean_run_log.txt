@@ -1,0 +1,40 @@
+$ python -m venv .venv && pip install numpy matplotlib tqdm   # python 3.13.16, numpy 2.5.4, matplotlib 3.11.2
+$ python run_all.py --fresh
+run_all:   0%|          | 0/6 [00:00<?, ?it/s]
+[tests]
+30/30 passed
+  -> results/logs/test_formats.txt
+run_all:  17%|█▋        | 1/6 [00:00<00:02,  1.76it/s]
+[baseline]
+  -> results/baseline_C.json
+  -> results/logs/run_baseline.txt
+run_all:  33%|███▎      | 2/6 [00:00<00:01,  2.22it/s]
+[baseline_wx]
+  -> results/baseline_C_wx.json
+  -> results/logs/run_baseline_wx.txt
+run_all:  50%|█████     | 3/6 [00:01<00:01,  2.46it/s]
+[tables]
+  (datasets A-E skipped: pass --npz path/to/assignment_data.npz or put it in data/)
+  -> results/tables/T1_main_C.md
+  -> results/tables/T2_storage.md
+  -> results/tables/T3_e4m1_conventions.md
+  -> results/tables/T4_bfp_family.md
+  -> results/tables/T5_w_vs_wx.md
+  -> results/tables/T6_diagnostics_ocp.md
+  -> results/tables/T8_mxint6_sym_vs_tc.md
+
+[scripts]
+
+team scripts:   0%|          | 0/3 [00:00<?, ?it/s][A
+team scripts:  33%|███▎      | 1/3 [00:01<00:02,  1.14s/it][A
+team scripts:  67%|██████▋   | 2/3 [00:01<00:00,  1.48it/s][A
+team scripts: 100%|██████████| 3/3 [00:06<00:00,  2.75s/it][A
+                                                           [A  -> results/logs/validate_predictor.txt
+  -> results/logs/explore.txt
+  -> results/logs/make_figures.txt
+run_all:  83%|████████▎ | 5/6 [00:08<00:02,  2.08s/it]
+[manifest]
+  -> results/RUN_MANIFEST.md
+run_all: 100%|██████████| 6/6 [00:08<00:00,  1.34s/it]
+
+Done in 8.0 s. Tables: results/tables/, figures: figures/, logs: results/logs/, manifest: results/RUN_MANIFEST.md

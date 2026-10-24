@@ -1,0 +1,15 @@
+format              rule    Y all %  Y held-out %     W %   sat  zeroed  bits/el   Y fp32-fp64 rel diff
+MXFP_E2M3           floor     3.079         3.101   3.082    20     461     6.32                5.4e-08
+MXFP_E2M3           opt       3.058         3.076   3.062     7     471     6.32                1.1e-07
+MXINT6              floor     4.047         4.054   4.025     8     891     6.32                6.6e-08
+MXINT6              opt       3.896         3.938   3.874    38     848     6.32                4.6e-08
+BFP6                floor     3.464         3.484   3.429    10     748     6.28                9.2e-08
+BFP6                opt       3.403         3.437   3.368    43     721     6.28                8.5e-09
+MXFP_E3M2           floor     5.439         5.469   5.421    43      66     6.32                8.7e-08
+MXFP_E3M2           opt       5.236         5.257   5.208     0      71     6.32                8.6e-08
+MXFP_E4M1           floor    11.088        11.149  11.051    96       1     6.32                3.1e-08
+MXFP_E4M1           ceil     10.176        10.237  10.111     0       1     6.32                8.7e-08
+MXFP_E4M1_reserved  floor    11.088        11.149  11.051    96       1     6.32                7.6e-08
+MXFP_E4M1_onenan    floor    20.722        20.662  20.688   496       1     6.32                7.1e-08
+MXFP_E4M1_onenan    ceil     10.176        10.237  10.111     0       1     6.32                9.6e-08
+BFP6_32_8_floor     floor     4.047         4.054   4.025     8     891     6.32                6.6e-08
