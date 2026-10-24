@@ -1,5 +1,5 @@
 """Adapter: maps crosscheck.py names onto Akash's formats.py API. No logic of its own.
-Names as in formats.py v2.1 (FORMATS_API.md)."""
+Names as in formats.py v2.1 (FORMATS_API.md, D10 revised: MXINT6 is two's complement)."""
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))   # own folder wins
 import formats as F
@@ -10,8 +10,8 @@ NAME = {
     "MXFP_E4M1": "MXFP6_E4M1",
     "MXFP_E4M1_reserved": "MXFP6_E4M1_v192",
     "MXFP_E4M1_onenan": "MXFP6_E4M1_nan1",
-    "MXINT6": "MXINT6_sym",                    # reference MXINT6 = symmetric [-31, 31]
-    "MXINT6_twos": "MXINT6",                   # formats.py v2.1: MXINT6 is two's complement (D10)
+    "MXINT6": "MXINT6_sym",                    # reference "MXINT6" = symmetric [-31, 31]
+    "MXINT6_twos": "MXINT6",                   # D10 revised 23 Oct: candidate MXINT6 = two's complement
     "BFP6": "BFP6",                            # v2: 16|4|5 (D1)
     "BFP6_32_8_floor": "BFP6_g32e8",
     "BFP6_32_8_ceil": "BFP6_b32_ceil",         # v2 name of the old BFP6

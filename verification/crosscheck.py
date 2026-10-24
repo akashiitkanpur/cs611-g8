@@ -147,7 +147,8 @@ def run(fn, data=None, x=None):
                       f"  (-0 diffs {r['signed_zero_diffs']}){extra}")
                 for e in r["examples"]:
                     print("       ", e)
-    with open("crosscheck_report.json", "w") as fh:
+    import os
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "crosscheck_report.json"), "w") as fh:
         json.dump(report, fh, indent=1)
     print("\nBIT-EXACT AGREEMENT" if ok else "\nDISAGREEMENT FOUND: see crosscheck_report.json")
     return ok
