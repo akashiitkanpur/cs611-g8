@@ -89,7 +89,7 @@ Truth is the held-out Y error (odd X columns) under the class rule. The test set
 - **On white X, and on A–E (X_cal is nearly white), way 1 and way 2 agree.** On A–E every exact method picks the winner, or a tie within 0.000 dB: B is BFP6 vs MXINT6, 1.781 vs 1.782.
 - **The remaining gap is correlated X.** With low-rank X the diagonal of H is not enough: 83% vs 97% for brute force with the full H. The realized error then depends on the projections of ΔW onto a few directions, which an expectation cannot predict. This is the limit of any rounding-free method.
 - **Scaling** (`results/selector_scaling.md`, LLM-like 4096×4096 = 16.8M weights): brute force 2.0 s, exact sketch 2.2 s (memory-bound in NumPy), certified 0.17 s while rounding 0.10% of blocks, with the same pick. The sample the certifier needs depends on the margin between formats, not on the matrix size: 0.10% of blocks at 16.8M weights, 2.8% when the margin is only 0.34 dB.
-- **Winners in the random suite:** BFP6 671, E2M3 238, E3M2 68, MXINT6 23. BFP6 16|4|5 has the same grid as MXINT6 on blocks half as long, at fewer bits (6.28 vs 6.32), so it wins whenever its 4-bit exponent does not clamp.
+- **Winners in the random suite:** BFP6 671, E2M3 238, E3M2 68, MXINT6 23. BFP6 16|4|5 has the same grid as MXINT6 on blocks half as long, at fewer bits (6.28 vs 6.32). It has the lower weight error in 991 of 1000 matrices, including every matrix where its 4-bit exponent never clamps (MXINT6 wins only when the clamp costs BFP6 precision).
 - **Class rule vs `opt`:** the class-rule winner equals the `opt` winner in 94% of matrices.
 
 ## 5. Per-block mixed formats (excluded by D4; only to answer "would it help?")
