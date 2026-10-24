@@ -14,14 +14,14 @@ layout("BFP6")   # {'block': 16, 'policy': 'ocp', 'scale_bits': 4, 'field': (-8,
 | name | role | definition | bits/elem (100x100) |
 |---|---|---|---|
 | MXFP6_E3M2 / E2M3 / E4M1 | candidates | class FP6; E4M1 vmax 384 (D3) | 6.32 |
-| MXINT6 | candidate | k·2^-4, k in [-31, 31] | 6.32 |
+| MXINT6 | candidate | k·2^-4, two's complement k in [-32, 31] (D10, revised 23 Oct) | 6.32 |
 | BFP6 | candidate | 16\|4\|5: 4-bit E = floor(log2 max) in [-8, 7], ±M·2^(E-4), M ≤ 31 (D1) | 6.28 |
 | MXFP6_E4M1_v192 | variant | top exponent reserved, vmax 192 | 6.32 |
 | MXFP6_E4M1_nan1 | variant | one NaN code, vmax 256 | 6.32 |
-| BFP6_g32e8 | variant | BFP 32\|8\|5, floor: identical to MXINT6 | 6.32 |
+| BFP6_g32e8 | variant | BFP 32\|8\|5, floor: identical to MXINT6_sym | 6.32 |
 | BFP6_b32_ceil | variant | v1's BFP6 (block 32, ceil) | 6.32 |
 | BFP6_row | variant | one block per row, ceil | 6.08 |
-| MXINT6_tc | variant | two's complement k in [-32, 31] (D10) | 6.32 |
+| MXINT6_sym | variant | symmetric k in [-31, 31] (the MXINT6 of v1/v2) | 6.32 |
 
 Code that loops over `FORMATS` sees only the five candidates.
 
@@ -68,4 +68,4 @@ Each row has `y_rel_err_heldout` (primary, D6), `n_roundings` and `n_macs` (for 
 
 ## Tests
 
-`python test_formats.py` runs 30 tests: the 18 from v1 (two adapted to D1) and 12 new ones. The new tests cover the BFP6 hand example and 4-bit clamp, 32|8|5 = MXINT6, BFP6 = 3.46% on C, E4M1 one-NaN (20.7%), range vs saturated, two's complement, storage per D11, W+X blocking, metrics and exhaustive in W+X, and stale checkpoints.
+`python test_formats.py` runs 30 tests: the 18 from v1 (two adapted to D1) and 12 new ones. The new tests cover the BFP6 hand example and 4-bit clamp, 32|8|5 = MXINT6_sym, BFP6 = 3.46% on C, E4M1 one-NaN (20.7%), range vs saturated, two's complement, storage per D11, W+X blocking, metrics and exhaustive in W+X, and stale checkpoints.

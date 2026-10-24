@@ -1,5 +1,5 @@
 $ python test_formats.py
-# exit 0, 0.5 s
+# exit 0, 0.6 s
 
 PASS  test_all_zero_block_scale_one
 PASS  test_bfp6_variants_vs_mxint6
@@ -22,7 +22,7 @@ PASS  test_tail_block_of_four
 PASS  test_v2_bfp6_4bit_exponent_clamp
 PASS  test_v2_bfp6_layout_and_hand_example
 PASS  test_v2_bfp6_on_dataset_C
-PASS  test_v2_bfp_32_8_5_identical_to_mxint6
+PASS  test_v2_bfp_32_8_5_identical_to_mxint6_sym
 PASS  test_v2_checkpoint_rejects_stale_rows
 PASS  test_v2_e4m1_one_nan_variant
 PASS  test_v2_exhaustive_wx_mode

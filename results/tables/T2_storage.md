@@ -13,4 +13,4 @@ True storage per element for a 100x100 matrix, counting each row's tail block wi
 | BFP6_g32e8 | variant | 32 | 4 | 8 | -127..127 | 63200 | 6.320 |
 | BFP6_b32_ceil | variant | 32 | 4 | 8 | -127..127 | 63200 | 6.320 |
 | BFP6_row | variant | row | 1 | 8 | -127..127 | 60800 | 6.080 |
-| MXINT6_tc | variant | 32 | 4 | 8 | -127..127 | 63200 | 6.320 |
+| MXINT6_sym | variant | 32 | 4 | 8 | -127..127 | 63200 | 6.320 |

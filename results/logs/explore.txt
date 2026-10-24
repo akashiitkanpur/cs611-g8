@@ -1,12 +1,12 @@
 $ python explore.py
-# exit 0, 0.3 s
+# exit 0, 0.4 s
 
 
 == Exhaustive, default OCP scale (floor rule)
 format        wSQNR dB  ySQNR dB  y rel err
 MXFP6_E2M3       30.22     30.23    3.0794%
 BFP6             29.30     29.21    3.4640%
-MXINT6           27.91     27.86    4.0474%
+MXINT6           27.91     27.86    4.0479%
 MXFP6_E3M2       25.32     25.29    5.4386%
 MXFP6_E4M1       19.13     19.10   11.0880%
 
@@ -14,7 +14,7 @@ MXFP6_E4M1       19.13     19.10   11.0880%
 format        wSQNR dB  ySQNR dB  y rel err
 MXFP6_E2M3       30.28     30.29    3.0582%
 BFP6             29.45     29.36    3.4029%
-MXINT6           28.24     28.19    3.8957%
+MXINT6           28.33     28.29    3.8498%
 MXFP6_E3M2       25.67     25.62    5.2358%
 MXFP6_E4M1       19.90     19.85   10.1757%
 
@@ -22,7 +22,7 @@ MXFP6_E4M1       19.90     19.85   10.1757%
 format        wSQNR dB  ySQNR dB  y rel err
 MXFP6_E2M3       30.28     30.29    3.0584%
 BFP6             29.45     29.38    3.3951%
-MXINT6           28.24     28.19    3.8950%
+MXINT6           28.33     28.29    3.8491%
 MXFP6_E3M2       25.66     25.63    5.2279%
 MXFP6_E4M1       19.90     19.87   10.1541%
 
@@ -30,7 +30,7 @@ MXFP6_E4M1       19.90     19.87   10.1541%
 MXFP6_E3M2   default   25.24  tuned   25.58
 MXFP6_E2M3   default   30.17  tuned   30.23
 MXFP6_E4M1   default   19.06  tuned   19.80
-MXINT6       default   27.84  tuned   28.10
+MXINT6       default   27.84  tuned   28.16
 BFP6         default   29.16  tuned   29.28
 
 == Cheap predictors vs exhaustive (default scale)
@@ -46,11 +46,11 @@ outliers clipped 3s MXFP6_E2M3 E3M2=25.9 E2M3=31.2 E4M1=20.1 MXINT6=29.2 BFP6=30
 20 outliers x10      MXFP6_E2M3 E3M2=25.3 E2M3=30.1 E4M1=19.1 MXINT6=27.4 BFP6=29.0
 20 outliers x50      MXFP6_E2M3 E3M2=24.7 E2M3=27.6 E4M1=20.4 MXINT6=24.4 BFP6=26.8
 sparsity 50%        BFP6 E3M2=25.2 E2M3=30.4 E4M1=18.5 MXINT6=29.4 BFP6=30.9
-sparsity 90%        BFP6 E3M2=24.6 E2M3=30.9 E4M1=17.6 MXINT6=33.4 BFP6=34.7
+sparsity 90%        BFP6 E3M2=24.6 E2M3=30.9 E4M1=17.6 MXINT6=33.5 BFP6=34.7
 row scales 1e-2..1e2 MXFP6_E2M3 E3M2=24.7 E2M3=30.3 E4M1=18.9 MXINT6=28.1 BFP6=19.2
 col scales 1e-2..1e2 MXFP6_E2M3 E3M2=24.4 E2M3=29.2 E4M1=17.5 MXINT6=28.1 BFP6=17.6
 pure Gaussian       MXFP6_E2M3 E3M2=25.4 E2M3=30.9 E4M1=19.3 MXINT6=29.7 BFP6=30.7
-uniform             MXINT6 E3M2=24.2 E2M3=31.1 E4M1=16.7 MXINT6=35.7 BFP6=35.7
+uniform             MXINT6 E3M2=24.2 E2M3=31.1 E4M1=16.7 MXINT6=35.8 BFP6=35.7
 Student-t nu=3      MXFP6_E2M3 E3M2=25.2 E2M3=29.6 E4M1=18.6 MXINT6=26.5 BFP6=28.3
 
 storage bits/elem (6-bit + 8-bit scale per block): 6.32

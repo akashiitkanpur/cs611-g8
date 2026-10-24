@@ -6,11 +6,11 @@ Element counts on W_C (10,000 weights) under the class rule. Definitions follow 
 | MXFP6_E3M2 | 96 | 43 | 66 | 342 | 0 |
 | MXFP6_E2M3 | 43 | 20 | 461 | 4282 | 0 |
 | MXFP6_E4M1 | 245 | 96 | 1 | 1 | 0 |
-| MXINT6 | 20 | 8 | 891 | 0 | 0 |
+| MXINT6 | 15 | 6 | 891 | 0 | 0 |
 | BFP6 | 33 | 10 | 748 | 0 | 0 |
 | MXFP6_E4M1_v192 | 245 | 96 | 1 | 1 | 0 |
 | MXFP6_E4M1_nan1 | 927 | 496 | 1 | 1 | 0 |
 | BFP6_g32e8 | 20 | 8 | 891 | 0 | 0 |
 | BFP6_b32_ceil | 20 | 8 | 891 | 0 | 0 |
 | BFP6_row | 6 | 3 | 1114 | 0 | 0 |
-| MXINT6_tc | 15 | 6 | 891 | 0 | 0 |
+| MXINT6_sym | 20 | 8 | 891 | 0 | 0 |

@@ -270,8 +270,8 @@ def step_tables(a):
                 order = sorted(CANDIDATES, key=lambda n: res[n, p])
                 rows.append([k, p] + [res[n, p] for n in CANDIDATES] + [order[0], res[order[1], p] - res[order[0], p]])
             for p in ("ocp", "opt"):
-                s = yerr_heldout(Wk, XA, quantize(Wk, "MXINT6", policy=p)[0])
-                t = yerr_heldout(Wk, XA, quantize(Wk, "MXINT6_tc", policy=p)[0])
+                s = yerr_heldout(Wk, XA, quantize(Wk, "MXINT6_sym", policy=p)[0])
+                t = yerr_heldout(Wk, XA, quantize(Wk, "MXINT6", policy=p)[0])
                 rows_tc.append([k, p, s, t, t - s])
         out.append(write_table(
             "T7_datasets_A_to_E", ["dataset", "policy"] + CANDIDATES + ["winner", "margin to 2nd (pp)"], rows,
@@ -281,8 +281,8 @@ def step_tables(a):
             rows_tc, "MXINT6 integer range convention (D10), held-out Y error (%)."))
     else:
         W, X = load_C()
-        rows_tc = [["C", p, yerr_heldout(W, X, quantize(W, "MXINT6", policy=p)[0]),
-                    yerr_heldout(W, X, quantize(W, "MXINT6_tc", policy=p)[0])] for p in ("ocp", "opt")]
+        rows_tc = [["C", p, yerr_heldout(W, X, quantize(W, "MXINT6_sym", policy=p)[0]),
+                    yerr_heldout(W, X, quantize(W, "MXINT6", policy=p)[0])] for p in ("ocp", "opt")]
         rows_tc = [r + [r[3] - r[2]] for r in rows_tc]
         out.append(write_table(
             "T8_mxint6_sym_vs_tc", ["dataset", "policy", "symmetric [-31,31]", "two's compl. [-32,31]", "difference (pp)"],

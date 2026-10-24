@@ -1,0 +1,4 @@
+$ python scale_study.py
+# exit 0, 8.1 s
+
+wrote /Users/aryan/Documents/GitHub/CS611 Assignment/cs611-g8/results/scale_study.md; cross-check: 0 differing elements

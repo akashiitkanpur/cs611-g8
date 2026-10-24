@@ -1,4 +1,4 @@
-"""6-bit candidate formats for CS611 A1, Group 8 (dataset C).  Owner: Akash.   Version 2 (22 Oct).
+"""6-bit candidate formats for CS611 A1, Group 8 (dataset C).  Owner: Akash.   Version 2.1 (24 Oct: D10 revised).
 
 Conventions. [CLASS] = Lecture 19 OCP-MX notebook / board notes; [TEAM Dn] = our decision
 from TEAM_PLAN.md section 1, to be stated and defended in the report.
@@ -24,8 +24,9 @@ from TEAM_PLAN.md section 1, to be stated and defended in the report.
   MXFP6_E3M2  m=2, bias 3, emin=-2, emax=4, vmax=28                                [CLASS]
   MXFP6_E2M3  m=3, bias 1, emin=0,  emax=2, vmax=7.5                               [CLASS]
   MXFP6_E4M1  m=1, bias 7, emin=-6, emax=8, vmax=1.5*2^8=384, no reserved code  [TEAM D3]
-  MXINT6      S I F F F F: k * 2^-4, k in [-31, 31] (the -32 code is never produced),
-              vmax = 31/16, emax_elem = 0, S = 2^floor(log2 amax)  [board notes; TEAM D10]
+  MXINT6      S I F F F F: k * 2^-4, two's complement k in [-32, 31] (class INT notes),
+              vmax = 31/16 (most negative -2), emax_elem = 0, S = 2^floor(log2 amax)
+                                                        [board notes; TEAM D10, revised 23 Oct]
   BFP6        g|e|m = 16|4|5: groups of 16, ONE 4-bit shared exponent E = floor(log2 amax)
               clamped to [-8, 7], sign + 5-bit magnitude M in [0, 31], value = +-M * 2^(E-4),
               RNE, saturate at M = 31.                                         [TEAM D1]
@@ -33,10 +34,10 @@ from TEAM_PLAN.md section 1, to be stated and defended in the report.
   Variants (VARIANTS; sensitivity rows, never in the main ranking):
   MXFP6_E4M1_v192  top exponent code reserved (IEEE-like) -> emax=7, vmax=192     [TEAM D3]
   MXFP6_E4M1_nan1  one NaN code (E4M3-style, S.1111.1) -> emax=8, vmax=256        [TEAM D3]
-  BFP6_g32e8       BFP 32|8|5, floor rule: numerically IDENTICAL to MXINT6        [TEAM D1]
-  BFP6_b32_ceil    v1's BFP6: block 32, 8-bit exponent, "ceil" rule (= MXINT6 under ceil)
+  BFP6_g32e8       BFP 32|8|5, floor rule: numerically IDENTICAL to MXINT6_sym    [TEAM D1]
+  BFP6_b32_ceil    v1's BFP6: block 32, 8-bit exponent, "ceil" rule (= MXINT6_sym under ceil)
   BFP6_row         one block per row, 8-bit exponent, "ceil" rule (6.08 bits/elem)
-  MXINT6_tc        two's complement k in [-32, 31] (class INT notes)              [TEAM D10]
+  MXINT6_sym       symmetric k in [-31, 31] (OCP style; the MXINT6 of v1/v2)       [TEAM D10]
 
   Stored exponent field. quantize() returns exps = the value written to the shared-exponent
   field. For MX formats that is the E8M0 scale exponent e. For BFP it is E, and the step of
@@ -70,7 +71,7 @@ except ImportError:                     # pragma: no cover
     def tqdm(it, **_):
         return it
 
-FORMATS_VERSION = "v2"
+FORMATS_VERSION = "v2.1"
 BLOCK = 32
 E8M0_MIN, E8M0_MAX = -127, 127
 OPT_OFFSETS = (-2, -1, 0, 1)
@@ -116,7 +117,7 @@ FORMATS = {
     "MXFP6_E3M2": ("fp", dict(ebits=3, mbits=2, bias=3, maxval=28.0), 4),
     "MXFP6_E2M3": ("fp", dict(ebits=2, mbits=3, bias=1, maxval=7.5), 2),
     "MXFP6_E4M1": ("fp", dict(ebits=4, mbits=1, bias=7, maxval=384.0), 8),
-    "MXINT6":     ("int", dict(frac_bits=4, kmax=31), 0),
+    "MXINT6":     ("int", dict(frac_bits=4, kmax=31, kmin=-32), 0),   # D10: two's complement
     "BFP6":       ("bfp", dict(kmax=31), 4),   # integer magnitude M; 31 = 1.9375 * 2^4
 }
 # Variants are kept out of FORMATS so that code looping over FORMATS still sees
@@ -127,7 +128,7 @@ VARIANTS = {
     "BFP6_g32e8":      ("bfp", dict(kmax=31), 4),
     "BFP6_b32_ceil":   ("bfp", dict(kmax=31), 4),
     "BFP6_row":        ("bfp", dict(kmax=31), 4),
-    "MXINT6_tc":       ("int", dict(frac_bits=4, kmax=31, kmin=-32), 0),
+    "MXINT6_sym":      ("int", dict(frac_bits=4, kmax=31), 0),
 }
 
 # Block organisation and shared-exponent field. Anything not listed uses LAYOUT_DEFAULT.

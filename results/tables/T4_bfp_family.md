@@ -7,7 +7,7 @@ BFP family on dataset C. BFP 32|8|5 with the floor rule is numerically identical
 | BFP6_g32e8 | 32\|8\|5 floor, RNE (= MXINT6) | 6.320 | 4.054 | 4.174 | 3.938 |
 | BFP6_b32_ceil | 32\|8\|5 ceil, RNE (v1 BFP6) | 6.320 | 4.054 | 4.174 | 3.938 |
 | BFP6_row | 100\|8\|5 ceil, RNE (one block per row) | 6.080 | 5.166 | 5.362 | 4.679 |
-| MXINT6 | reference: MXINT6 | 6.320 | 4.054 | 4.174 | 3.938 |
+| MXINT6 | reference: MXINT6 | 6.320 | 4.054 | 4.174 | 3.880 |
 | ablation g=16 | 16\|4\|5 exp floor, rne | 6.280 | 3.484 |  |  |
 | ablation g=16 | 16\|4\|5 exp floor, trunc | 6.280 | 6.636 |  |  |
 | ablation g=16 | 16\|4\|5 exp floor+1, rne | 6.280 | 6.937 |  |  |

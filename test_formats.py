@@ -22,7 +22,7 @@ from formats import (FORMATS, VARIANTS, E8M0_MIN, E8M0_MAX, spec, layout, fp_rou
 
 FP_NAMES = ["MXFP6_E3M2", "MXFP6_E2M3", "MXFP6_E4M1", "MXFP6_E4M1_v192", "MXFP6_E4M1_nan1"]
 ALL = list(FORMATS) + list(VARIANTS)
-SYMMETRIC = [n for n in ALL if n != "MXINT6_tc"]          # two's complement is asymmetric
+SYMMETRIC = [n for n in ALL if n != "MXINT6"]             # two's complement is asymmetric (D10)
 rng = np.random.default_rng(0)
 
 
@@ -281,14 +281,14 @@ def test_v2_bfp6_4bit_exponent_clamp():
     assert quantize(w, "BFP6_g32e8", return_stats=True)[2]["n_scale_clamped"] == 0
 
 
-def test_v2_bfp_32_8_5_identical_to_mxint6():
-    # D1: BFP(32 values, 8-bit exponent, floor, RNE) == MXINT6, including the stored exponent
+def test_v2_bfp_32_8_5_identical_to_mxint6_sym():
+    # D1: BFP(32 values, 8-bit exponent, floor, RNE) == symmetric MXINT6, including the stored exponent
     W = rng.standard_t(4, (30, 100))
     W[0, :32] = 2.0 ** -200
     W[1, 32:64] = 2.0 ** 200
     for pol in ("ocp", "ceil", "opt"):
         a, ea = quantize(W, "BFP6_g32e8", policy=pol)
-        b, eb = quantize(W, "MXINT6", policy=pol)
+        b, eb = quantize(W, "MXINT6_sym", policy=pol)
         assert np.array_equal(a, b) and np.array_equal(ea, eb), pol
 
 
@@ -297,7 +297,7 @@ def test_v2_bfp6_on_dataset_C():
     if W is None:
         return
     assert abs(yerr(W, X, "BFP6") - 3.46) < 0.006                # plan D1 prototype value
-    assert abs(yerr(W, X, "BFP6_g32e8") - yerr(W, X, "MXINT6")) == 0
+    assert abs(yerr(W, X, "BFP6_g32e8") - yerr(W, X, "MXINT6_sym")) == 0
 
 
 # ---------------------------------------------------------------- v2: E4M1 one-NaN (D3)
@@ -331,16 +331,16 @@ def test_v2_range_vs_saturated_counts():
 def test_v2_mxint6_twos_complement():
     # block [-1.99]: E = 0, -1.99 * 16 = -31.84 -> -32 is a code in two's complement (-2.0),
     # symmetric MXINT6 clips to -31 (-1.9375)
-    assert quantize(row(-1.99), "MXINT6_tc")[0][0, 0] == -2.0
-    assert quantize(row(-1.99), "MXINT6")[0][0, 0] == -1.9375
-    assert quantize(row(1.99), "MXINT6_tc")[0][0, 0] == 1.9375    # +32 is not a code
+    assert quantize(row(-1.99), "MXINT6")[0][0, 0] == -2.0
+    assert quantize(row(-1.99), "MXINT6_sym")[0][0, 0] == -1.9375
+    assert quantize(row(1.99), "MXINT6")[0][0, 0] == 1.9375       # +32 is not a code
 
 
 # ---------------------------------------------------------------- v2: storage (D11)
 def test_v2_true_storage_per_format():
     expect = {n: 6.32 for n in FORMATS}
     expect.update({"BFP6": 6.28, "BFP6_g32e8": 6.32, "BFP6_b32_ceil": 6.32, "BFP6_row": 6.08,
-                   "MXFP6_E4M1_v192": 6.32, "MXFP6_E4M1_nan1": 6.32, "MXINT6_tc": 6.32})
+                   "MXFP6_E4M1_v192": 6.32, "MXFP6_E4M1_nan1": 6.32, "MXINT6_sym": 6.32})
     for n in ALL:
         total, per = format_storage(n, 100, 100)
         assert abs(per - expect[n]) < 1e-12, (n, per)
@@ -409,7 +409,8 @@ def test_dataset_C_matches_prototype():
         print("  (skipped: data/W_C.npy not found)")
         return
     proto = {  # % Y error from the team plan (ocp, ceil, block-optimal)
-        "MXFP6_E2M3": (3.08, 3.10, 3.06), "MXINT6": (4.05, 4.17, 3.90),
+        "MXFP6_E2M3": (3.08, 3.10, 3.06), "MXINT6_sym": (4.05, 4.17, 3.90),
+        "MXINT6": (4.05, 4.17, 3.85),                  # two's complement (D10): only opt moves
         "MXFP6_E3M2": (5.44, 5.24, 5.24), "MXFP6_E4M1": (11.09, 10.18, 10.18),
     }
     for n, vals in proto.items():
