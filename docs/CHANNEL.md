@@ -9,7 +9,7 @@ Settled decisions live in [`DECISIONS.md`](DECISIONS.md) (the ledger). The plan 
 |---|---|---|
 | Aryan | `akode2803` | `for:aryan` |
 | Akash | `akashiitkanpur` | `for:akash` |
-| Anuj | (add yours) | `for:anuj` |
+| Anuj | `Anuj52` | `for:anuj` |
 | Nikita | (add yours) | `for:nikita` |
 | Siddhant | (add yours) | `for:siddhant` |
 

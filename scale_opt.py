@@ -15,7 +15,8 @@ values when the code is not symmetric, as in two's complement) plus the element 
 emax used by the class rule, the block size and the stored shared-exponent range.
 An element decodes to  sign * g[code] * 2^e,  e = the shared exponent of its block.
 Exponent names follow formats.py v2: for BFP the stored field E is the scale exponent of
-the k/16 grid, so a BFP element is +-k * 2^(E - 4).
+the k/16 grid, so a BFP element is +-k * 2^(E - 4). MXINT6 follows the revised D10
+(23 Oct): two's complement k in [-32, 31]; the symmetric [-31, 31] code is MXINT6_sym.
 
 Policies, per block, with e_ocp = floor(log2 amax) - emax:
   ocp     e_ocp                                                              [CLASS]
@@ -83,6 +84,7 @@ class Fmt(NamedTuple):
     default: str = "ocp"                 # policy used when none is given
     grid_neg: Optional[np.ndarray] = None    # magnitudes for negative values (None = grid)
     nxt_neg: Optional[float] = None
+    neg_zero: bool = True                # False for an integer code: zero has no sign
 
 
 def _fp(ebits, mbits, bias, vmax, emax, **kw):
@@ -101,15 +103,15 @@ FMTS = {
     "MXFP6_E3M2": _fp(3, 2, 3, 28.0, 4, **MX),
     "MXFP6_E2M3": _fp(2, 3, 1, 7.5, 2, **MX),
     "MXFP6_E4M1": _fp(4, 1, 7, 384.0, 8, **MX),                 # D3: no reserved code
-    "MXINT6":     _int(31, **MX),                               # D10: k in [-31, 31]
-    "BFP6":       _int(31, 16, (-8, 7), 4),                     # D1: 16|4|5, +-k * 2^(E-4)
+    "MXINT6":     _int(31, **MX, kmin=-32, neg_zero=False),     # D10 (23 Oct): two's complement [-32, 31]
+    "BFP6":       _int(31, 16, (-8, 7), 4),                     # D1: 16|4|5, sign + magnitude, +-k * 2^(E-4)
 }
 VARIANTS = {
     "MXFP6_E4M1_v192": _fp(4, 1, 7, 192.0, 7, **MX),            # top exponent reserved
     "MXFP6_E4M1_nan1": _fp(4, 1, 7, 256.0, 8, **MX),            # one NaN code (E4M3-style)
-    "BFP6_g32e8":      _int(31, **MX),                          # BFP 32|8|5 floor (= MXINT6)
+    "MXINT6_sym":      _int(31, **MX, neg_zero=False),          # symmetric [-31, 31] (OCP style)
+    "BFP6_g32e8":      _int(31, **MX),                          # BFP 32|8|5 floor (= MXINT6_sym)
     "BFP6_b32_ceil":   _int(31, **MX, default="ceil"),          # formats.py v1's BFP6
-    "MXINT6_tc":       _int(31, **MX, kmin=-32),                # two's complement [-32, 31]
 }
 
 
@@ -133,10 +135,13 @@ def bits_per_elem(name, n_cols=100, elem_bits=6):
 
 # --------------------------------------------------------------------------- elements
 def round_elem(f, v):
-    """Element rounding of v (already divided by the scale), sign-dependent grid if any."""
+    """Element rounding of v (already divided by the scale), sign-dependent grid if any.
+    An integer code has a single zero, so a negative value that rounds to 0 decodes to +0."""
     if f.grid_neg is None:
-        return round_to_grid(v, f.grid)
-    return np.where(v < 0, round_to_grid(v, f.grid_neg), round_to_grid(v, f.grid))
+        q = round_to_grid(v, f.grid)
+    else:
+        q = np.where(v < 0, round_to_grid(v, f.grid_neg), round_to_grid(v, f.grid))
+    return q if f.neg_zero else q + 0.0
 
 
 def out_of_range(f, v):

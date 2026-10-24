@@ -25,8 +25,9 @@ def test_grid_limits():
         f = S.spec(n)
         assert len(f.grid) == size and f.grid[-1] == vmax and f.grid[1] == smallest and f.nxt == nxt, n
         assert np.all(np.diff(f.grid) > 0), n
-    tc = S.spec("MXINT6_tc")
+    tc = S.spec("MXINT6")                                       # D10: two's complement
     assert tc.grid[-1] == 31 / 16 and tc.grid_neg[-1] == 2.0 and tc.nxt_neg == 33 / 16
+    assert S.spec("MXINT6_sym").grid_neg is None
 
 
 def test_vmax_ratio_below_two():
@@ -61,16 +62,24 @@ def test_range_vs_saturated():
 
 
 def test_twos_complement():
-    tc, sym = S.spec("MXINT6_tc"), S.spec("MXINT6")
+    tc, sym = S.spec("MXINT6"), S.spec("MXINT6_sym")
     v = np.array([-32.5, -32.0, -31.6, 31.6, 32.0]) / 16
     assert list(S.round_elem(tc, v) * 16) == [-32, -32, -32, 31, 31]
     assert list(S.round_elem(sym, v) * 16) == [-31, -31, -31, 31, 31]
     assert list(S.saturated(tc, v)) == [False, False, False, True, True]
     # a negative block max of 1.98: fits the -32 code at e_ocp = 0, so "ceil" keeps 0 for
-    # two's complement but moves symmetric MXINT6 up to 1
+    # two's complement but moves the symmetric code up to 1
     W = np.array([[-1.98, 0.5, 0.25]])
-    assert S.quantize(W, "MXINT6_tc", "ceil")[1][0, 0] == 0
-    assert S.quantize(W, "MXINT6", "ceil")[1][0, 0] == 1
+    assert S.quantize(W, "MXINT6", "ceil")[1][0, 0] == 0
+    assert S.quantize(W, "MXINT6_sym", "ceil")[1][0, 0] == 1
+
+
+def test_integer_code_has_no_negative_zero():
+    v = np.array([-0.01, -0.0, 0.01])
+    for n in ("MXINT6", "MXINT6_sym"):                          # one zero code
+        assert not np.signbit(S.round_elem(S.spec(n), v)).any(), n
+    for n in ("BFP6", "MXFP6_E2M3"):                            # sign + magnitude: -0 exists
+        assert list(np.signbit(S.round_elem(S.spec(n), v))) == [True, True, False], n
 
 
 def test_search_starts_from_the_clamped_exponent():

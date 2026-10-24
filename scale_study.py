@@ -27,8 +27,8 @@ CANDIDATES = list(S.FMTS)
 EXTRA = list(S.VARIANTS)
 SHORT = {"MXFP6_E3M2": "E3M2", "MXFP6_E2M3": "E2M3", "MXFP6_E4M1": "E4M1", "MXINT6": "MXINT6",
          "BFP6": "BFP6 16|4|5", "MXFP6_E4M1_v192": "E4M1 v192", "MXFP6_E4M1_nan1": "E4M1 one-NaN",
-         "BFP6_g32e8": "BFP6 32|8|5 (= MXINT6)", "BFP6_b32_ceil": "BFP6 32 ceil (v1)",
-         "MXINT6_tc": "MXINT6 two's compl."}
+         "BFP6_g32e8": "BFP6 32|8|5 (= MXINT6_sym)", "BFP6_b32_ceil": "BFP6 32 ceil (v1)",
+         "MXINT6_sym": "MXINT6_sym [-31, 31]"}
 POLICIES = [  # name, how, roundings per weight, what it is
     ("ocp", "class floor rule", 1),
     ("ceil", "smallest scale that clips nothing", 1),
@@ -87,6 +87,12 @@ def run_policy(W, name, policy, H_fit, H_eval):
     raise ValueError(policy)
 
 
+def block_max_signed(W, block):
+    """The value with the largest magnitude in each block, with its sign: shape (rows, blocks)."""
+    rows = np.arange(W.shape[0])
+    return np.stack([W[rows, sl.start + np.abs(W[:, sl]).argmax(1)] for sl in S.block_slices(W.shape[1], block)], 1)
+
+
 def col_energy(W, Wq, X):
     """Per-column squared error of Y and per-column energy of Y (for the bootstrap)."""
     return (((W - Wq) @ X) ** 2).sum(0), ((W @ X) ** 2).sum(0)
@@ -126,16 +132,20 @@ def crosscheck(datasets, md):
     H_rand = Xr @ Xr.T
     H_of = {f"W_{t}": X @ X.T for t, (_, X) in datasets.items()}
 
-    # (mine, formats.py name, block override, exponents compared up to a constant offset)
+    # (mine, formats.py name, block override, exponents compared up to a constant offset).
+    # Formats are matched by definition, so the check works with formats.py v1, v2 and after
+    # the revised D10 (MXINT6 two's complement, symmetric code = MXINT6_sym) lands there.
     v2 = getattr(F, "FORMATS_VERSION", "v1") != "v1"
     repo_names = set(F.FORMATS) | set(getattr(F, "VARIANTS", {}))
-    pairs = []
-    for n in CANDIDATES + EXTRA:
-        repo = "BFP6" if (n == "BFP6_b32_ceil" and not v2) else n    # v1 called the old BFP6 "BFP6"
-        if (n == "BFP6" and not v2) or repo not in repo_names:
-            continue
-        pairs.append((n, repo, None, n.startswith("BFP")))
-    pairs.append(("BFP6", "MXINT6", 16, False))         # D1 BFP6 = MXINT6 grid in blocks of 16
+    repo_tc = F.spec("MXINT6")[1].get("kmin") == -32             # formats.py MXINT6 = two's complement?
+    repo_of = {n: n for n in CANDIDATES + EXTRA if n in repo_names}
+    repo_of["MXINT6"] = "MXINT6" if repo_tc else ("MXINT6_tc" if "MXINT6_tc" in repo_names else None)
+    repo_of["MXINT6_sym"] = "MXINT6_sym" if "MXINT6_sym" in repo_names else (None if repo_tc else "MXINT6")
+    if not v2:
+        repo_of["BFP6_b32_ceil"], repo_of["BFP6"] = "BFP6", None    # v1 called the old BFP6 "BFP6"
+    pairs = [(n, repo_of[n], None, n.startswith("BFP")) for n in CANDIDATES + EXTRA if repo_of.get(n)]
+    if repo_of.get("MXINT6_sym"):                       # D1 BFP6 = symmetric MXINT6 grid in blocks of 16
+        pairs.append(("BFP6", repo_of["MXINT6_sym"], 16, False))
     checks = [("ocp", dict(policy="ocp"), dict(policy="ocp")),
               ("ceil", dict(policy="ceil"), dict(policy="ceil")),
               ("opt", dict(policy="opt"), dict(policy="opt")),
@@ -170,24 +180,30 @@ def crosscheck(datasets, md):
                     d = (ea - eb)[live]
                     same_e += bool(d.size == 0 or (np.all(d == d[0]) if shifted else np.all(d == 0)))
                 n_diff += int((a != b).sum())
-            if not (mine == "MXINT6_tc" and label == "ceil"):      # explained below the table
+            if not (S.spec(mine).grid_neg is not None and label == "ceil"):   # explained below the table
                 n_bad += n_diff
             md.append(f"| {mine} | {repo}{'' if blk is None else f' block={blk}'} | {label} | {n_mat} | "
                       f"{same_q}/{n_mat} | {same_e}/{n_mat} | {n_diff} |")
     md.append("")
-    md.append(f"formats.py version: {getattr(F, 'FORMATS_VERSION', 'v1')}. Exponents are compared on non-zero "
-              "blocks (an all-zero block gets exponent 0 in both); for the BFP rows only up to a constant offset "
-              "(formats.py v1 stored the exponent of the integer code, 4 lower than mine; v2 stores the same E). "
-              "The `BFP6 | MXINT6 block=16` rows skip matrices where the 4-bit exponent clamp [-8, 7] could bind "
-              "(every block exponent must be at least 3 from the limits), because MXINT6 has no 4-bit clamp."
-              + ("" if v2 else " formats.py v1 has no D1 BFP6, so that is the only check of it here.") + "\n")
-    tc_ceil = [r for r in md if r.startswith("| MXINT6_tc | MXINT6_tc | ceil |")]
+    missing = [n for n in CANDIDATES + EXTRA if not repo_of.get(n)]
+    md.append(f"formats.py version: {getattr(F, 'FORMATS_VERSION', 'v1')}; its MXINT6 is "
+              f"{'two' + chr(39) + 's complement' if repo_tc else 'symmetric [-31, 31]'}. Formats are matched by "
+              "definition (mine `MXINT6` = two's complement, D10 of 23 Oct)"
+              + (f"; not in this formats.py: {', '.join(missing)}" if missing else "") + ". Exponents are compared "
+              "on non-zero blocks (an all-zero block gets exponent 0 in both); for the BFP rows only up to a "
+              "constant offset (formats.py v1 stored the exponent of the integer code, 4 lower than mine; v2 stores "
+              "the same E). The `BFP6 | ... block=16` rows compare D1 BFP6 with the symmetric MXINT6 grid in blocks "
+              "of 16 and skip matrices where the 4-bit exponent clamp [-8, 7] could bind (every block exponent must "
+              "be at least 3 from the limits). Signed zeros are not counted: an integer code has one zero, so "
+              "`scale_opt.py` decodes MXINT6 to +0 where formats.py returns -0.\n")
+    tc_ceil = [r for r in md if r.startswith("| MXINT6 | ") and " | ceil | " in r]
     if tc_ceil and not tc_ceil[0].endswith("| 0 |"):
-        md.append("**MXINT6_tc under `ceil` differs on purpose.** formats.py's `ceil` moves the scale up whenever "
-                  "amax > (31/16) 2^e, whatever the sign of the maximum. For two's complement a negative maximum "
-                  "down to -2 * 2^e is representable (code -32), so nothing clips and `scale_opt.py` keeps the lower "
-                  "scale. The class-rule and `opt` rows, the only ones the tables use, agree. This row is left out of "
-                  "the 'differing elements' total the script prints.\n")
+        md.append("**Two's-complement MXINT6 under `ceil` differs on purpose (open decision).** formats.py's `ceil` "
+                  "(and Siddhant's reference) moves the scale up whenever amax > (31/16) 2^e, whatever the sign of "
+                  "the maximum. For two's complement a negative maximum down to -2 * 2^e is representable (code -32), "
+                  "so nothing clips and `scale_opt.py` keeps the lower scale, which is the literal 'smallest scale "
+                  "that clips nothing'. The class-rule and `opt` rows agree. This row is left out of the 'differing "
+                  "elements' total the script prints.\n")
 
     # the counters (Lecture 19 definitions), only in formats.py v2
     if v2:
@@ -211,8 +227,58 @@ def crosscheck(datasets, md):
                   "rounding, n_saturated = rounded value beyond vmax, n_zeroed), compared with formats.py v2's "
                   f"stats for every pair above under ocp, ceil and opt: {agree}/{total} identical"
                   + (". Differences: " + "; ".join(bad) if bad else "") + ".\n")
+    reference_check(mats.get("W_C"), md)
+    log2_edge_case(md)
+    return n_bad
 
-    # the log2 edge case: float64 values a few ulps below 2^k
+
+REF_NAME = {"MXFP6_E3M2": "MXFP_E3M2", "MXFP6_E2M3": "MXFP_E2M3", "MXFP6_E4M1": "MXFP_E4M1",
+            "MXINT6": "MXINT6_twos", "BFP6": "BFP6", "MXFP6_E4M1_v192": "MXFP_E4M1_reserved",
+            "MXFP6_E4M1_nan1": "MXFP_E4M1_onenan", "MXINT6_sym": "MXINT6",
+            "BFP6_g32e8": "BFP6_32_8_floor", "BFP6_b32_ceil": "BFP6_32_8_ceil"}
+
+
+def reference_check(W, md):
+    """Third implementation: Siddhant's scalar reference (verification/reference_impl.py), on W_C."""
+    path = os.path.join(HERE, "verification", "reference_impl.py")
+    if W is None or not os.path.exists(path):
+        return
+    import importlib.util
+    spec_ = importlib.util.spec_from_file_location("reference_impl", path)
+    R = importlib.util.module_from_spec(spec_)
+    spec_.loader.exec_module(R)
+    rule = {"ocp": "floor", "ceil": "ceil", "opt": "opt"}
+    md.append("Third implementation, Siddhant's scalar reference (`verification/reference_impl.py`, exact "
+              "fractions, written without reading formats.py), on W_C. Differing elements per policy, and signed "
+              "zeros (-0 vs +0) in brackets:\n")
+    md.append("| mine | reference | ocp | ceil | opt |")
+    md.append("|---|---|---|---|---|")
+    tc_ceil_diff = 0
+    for mine, ref in REF_NAME.items():
+        if ref not in R.FORMATS:
+            continue
+        cells = []
+        for pol in ("ocp", "ceil", "opt"):
+            f = dict(R.FORMATS[ref])
+            f["rule"] = rule[pol]
+            b = R.quantize_matrix(W, f)[0]
+            a = S.quantize(W, mine, pol)[0]
+            n = int((a != b).sum())
+            sz = int(((a == 0) & (b == 0) & (np.signbit(a) != np.signbit(b))).sum())
+            cells.append(f"{n} ({sz})")
+            if S.spec(mine).grid_neg is not None and pol == "ceil":
+                tc_ceil_diff += n
+        md.append(f"| {mine} | {ref} | " + " | ".join(cells) + " |")
+    md.append("")
+    if tc_ceil_diff:
+        md.append("The two's-complement MXINT6 `ceil` difference is a definition, not a rounding error: the reference "
+                  "(like formats.py) moves the scale up when amax > (31/16) 2^e whatever the sign of the maximum; "
+                  "`scale_opt.py` keeps the lower scale when a negative maximum fits the code -32, which clips "
+                  "nothing. Open decision for the team.\n")
+
+
+def log2_edge_case(md):
+    """The np.log2 edge case found on 21 Oct: float64 values a few ulps below 2^k."""
     x = float(np.nextafter(8.0, 0))
     w = np.zeros((1, 32)); w[0, 0] = x; w[0, 1] = 1.0
     eF = F.quantize(w, "MXFP6_E2M3")[1][0, 0]
@@ -234,7 +300,6 @@ def crosscheck(datasets, md):
     else:
         md[-1] += (f"For a = nextafter(8, 0) = {x!r}, formats.py gives the E2M3 block exponent {eF:.0f} where the "
                    f"class rule floor(log2 a) - 2 gives {eS}." + pred_note + "\n")
-    return n_bad
 
 
 # --------------------------------------------------------------------------- 2. per-dataset study
@@ -302,22 +367,21 @@ def study(tag, W, X, md, csv_rows):
         md.append(f"| {SHORT[n]} | {S.bits_per_elem(n, W.shape[1]):.2f} | " + " | ".join(
             f"{100 * res[n, p]['y_ho']:.3f}" for p in ("ocp", "ceil", "opt")) + " |")
     md.append("")
-    if "MXINT6_tc" in EXTRA:
+    if "MXINT6_sym" in EXTRA:
         # two's complement only matters when a NEGATIVE value reaches the extra code -32
         sign = {}
-        for n in ("MXINT6", "MXINT6_tc"):
+        mx = block_max_signed(W, 32)
+        for n in ("MXINT6", "MXINT6_sym"):
             d = res[n, "opt"]["e"] - res[n, "ocp"]["e"]
-            mx = np.stack([W[np.arange(W.shape[0]), sl.start + np.abs(W[:, sl]).argmax(1)]
-                           for sl in S.block_slices(W.shape[1], 32)], 1)
             sign[n] = (int((d == -1).sum()), int(((d == -1) & (mx < 0)).sum()))
-        md.append("MXINT6 symmetric vs two's complement (D10): under the class rule the extra code -32 is almost "
-                  f"never reached (held-out {100 * res['MXINT6', 'ocp']['y_ho']:.3f} vs "
-                  f"{100 * res['MXINT6_tc', 'ocp']['y_ho']:.3f}). Under `opt` it matters "
-                  f"({100 * res['MXINT6', 'opt']['y_ho']:.3f} vs {100 * res['MXINT6_tc', 'opt']['y_ho']:.3f}): "
-                  "at d = -1 the clip level for a negative maximum is -2^E instead of -(31/32) 2^E, so shrinking "
-                  f"the scale costs less. Blocks with d = -1 under opt: symmetric {sign['MXINT6'][0]} "
-                  f"({sign['MXINT6'][1]} with a negative maximum), two's complement {sign['MXINT6_tc'][0]} "
-                  f"({sign['MXINT6_tc'][1]} with a negative maximum).\n")
+        md.append("MXINT6 two's complement (the candidate since D10 was revised on 23 Oct) vs MXINT6_sym [-31, 31]: "
+                  "under the class rule the extra code -32 is almost never reached (held-out "
+                  f"{100 * res['MXINT6', 'ocp']['y_ho']:.3f} vs {100 * res['MXINT6_sym', 'ocp']['y_ho']:.3f}). "
+                  f"Under `opt` it matters ({100 * res['MXINT6', 'opt']['y_ho']:.3f} vs "
+                  f"{100 * res['MXINT6_sym', 'opt']['y_ho']:.3f}): at d = -1 the clip level for a negative maximum "
+                  "is -2^E instead of -(31/32) 2^E, so shrinking the scale costs less. Blocks with d = -1 under opt: "
+                  f"two's complement {sign['MXINT6'][0]} ({sign['MXINT6'][1]} with a negative maximum), symmetric "
+                  f"{sign['MXINT6_sym'][0]} ({sign['MXINT6_sym'][1]} with a negative maximum).\n")
 
     # 2b. ranking + bootstrap
     yev = col_energy(W, W, X_eval)[1]
@@ -379,30 +443,36 @@ def study(tag, W, X, md, csv_rows):
     # 2d. clip-zone blocks: bump or not
     md.append(f"### 2d. Blocks the class rule clips: is one exponent up worth it? (dataset {tag})\n")
     md.append("A block is clipped by the floor rule when its max mantissa m = amax / 2^floor(log2 amax) exceeds "
-              "r = vmax / 2^emax. 'Predicted' = log2(2/r), the clip-zone share if log2(amax) is spread evenly "
-              "over a binade. For those blocks, compare the weight SSE at e_ocp (clip part + rest) with e_ocp + 1.\n")
+              "r = vmax / 2^emax for the sign of the maximum. 'Predicted' = log2(2/r), the clip-zone share if "
+              "log2(amax) is spread evenly over a binade; for two's-complement MXINT6, r = 2 for a negative maximum "
+              "(code -32), so only blocks with a positive maximum can clip and the prediction is weighted by the "
+              "share of those. For the clipped blocks, compare the weight SSE at e_ocp (clip part + rest) with "
+              "e_ocp + 1.\n")
     md.append("| format | r | blocks clipped | share | predicted | clipped weights: clip SSE at e_ocp | same weights: "
               "rounding SSE at e_ocp+1 | other weights: SSE change | other weights whose step doubles | bump helps in "
               "| net SSE change from bumping |")
     md.append("|---|---|---|---|---|---|---|---|---|---|---|")
     for n in CANDIDATES:
         f = S.spec(n)
-        r_ratio = f.grid[-1] / 2.0 ** f.emax
+        r_pos = f.grid[-1] / 2.0 ** f.emax
+        r_neg = (f.grid if f.grid_neg is None else f.grid_neg)[-1] / 2.0 ** f.emax
         clip_sse = clip_after = others = net = 0.0
-        n_clip = n_help = n_blk = n_dbl = n_el = 0
+        n_clip = n_help = n_blk = n_dbl = n_el = n_neg = 0
         for sl in S.block_slices(W.shape[1], f.block):
             Wb = W[:, sl]
             amax = np.abs(Wb).max(1)
+            live = amax > 0
+            n_blk += int(live.sum())
+            n_neg += int((live & (block_max_signed(Wb, f.block)[:, 0] < 0)).sum())
             e0 = np.clip(S.base_exp(f, amax, "ocp"), *f.e_range)
-            clipped = (amax > np.ldexp(f.grid[-1], e0)) & (amax > 0)
-            n_blk += int((amax > 0).sum())
+            out = S.out_of_range(f, Wb / np.ldexp(1.0, e0)[:, None])
+            clipped = out.any(1) & live
             if not clipped.any():
                 continue
-            Wb, e0 = Wb[clipped], e0[clipped]
+            Wb, e0, sat = Wb[clipped], e0[clipped], out[clipped]
             s0 = np.ldexp(1.0, e0)[:, None]
             r0 = (Wb - S.qblock(f, Wb, e0)) ** 2
             r1 = (Wb - S.qblock(f, Wb, np.clip(e0 + 1, *f.e_range))) ** 2
-            sat = np.abs(Wb) / s0 > f.grid[-1]
             clip_sse += r0[sat].sum()
             clip_after += r1[sat].sum()
             others += r1[~sat].sum() - r0[~sat].sum()
@@ -414,8 +484,10 @@ def study(tag, W, X, md, csv_rows):
             keep = ~sat & (Wb != 0)
             n_dbl += int((step1 > step0)[keep].sum())
             n_el += int(keep.sum())
-        md.append(f"| {SHORT[n]} | {r_ratio:.4f} | {n_clip}/{n_blk} | {n_clip / max(n_blk, 1):.1%} | "
-                  f"{np.log2(2 / r_ratio):.1%} | {clip_sse:.4f} | {clip_after:.4f} | {others:+.4f} | "
+        pred = ((n_blk - n_neg) * np.log2(2 / r_pos) + n_neg * np.log2(2 / r_neg)) / max(n_blk, 1)
+        r_txt = f"{r_pos:.4f}" if r_neg == r_pos else f"{r_pos:.4f} (+) / {r_neg:.4f} (-)"
+        md.append(f"| {SHORT[n]} | {r_txt} | {n_clip}/{n_blk} | {n_clip / max(n_blk, 1):.1%} | "
+                  f"{pred:.1%} | {clip_sse:.4f} | {clip_after:.4f} | {others:+.4f} | "
                   f"{n_dbl / max(n_el, 1):.1%} | {n_help}/{n_clip} | {net:+.4f} |")
     md.append(f"\nFor scale: total weight energy ||W||^2 = {np.sum(W ** 2):.1f}. Net = (same weights at e_ocp+1 - "
               "clip SSE) + other weights' change. 'Other weights whose step doubles' = share of the unclipped "
@@ -424,23 +496,28 @@ def study(tag, W, X, md, csv_rows):
 
     # 2d'. why the integer formats like a SMALLER scale
     md.append(f"Why MXINT6 and BFP6 pick d = -1 (dataset {tag}). At d = -1 the step halves for every weight but the "
-              "clip level drops to (31/32) 2^E, E = floor(log2 amax). With one weight above that level and "
-              "uniform rounding noise, d = -1 wins when (m - 31/32)^2 < 2^-8 ((N-1)/16 + 1/12), m = amax / 2^E, "
-              "N = block size: m < m*.\n")
-    md.append("| format | N | m* | predicted share log2(m*) | blocks with d = -1 under opt | median m of those blocks |")
-    md.append("|---|---|---|---|---|---|")
+              "clip level drops to c 2^E, E = floor(log2 amax): c = 31/32 for a positive maximum (and for the "
+              "sign-magnitude BFP6), c = 32/32 for a negative maximum in two's-complement MXINT6 (code -32). With "
+              "one weight above that level and uniform rounding noise, d = -1 wins when (m - c)^2 < "
+              "2^-8 ((N-1)/16 + 1/12), m = amax / 2^E, N = block size: m < m* = c + sqrt(...).\n")
+    md.append("| format | sign of the block max | N | m* | predicted share log2(m*) | blocks with d = -1 under opt "
+              "| median m of those blocks |")
+    md.append("|---|---|---|---|---|---|---|")
     for n in ("MXINT6", "BFP6"):
         f = S.spec(n)
         N = f.block
-        m_star = 31 / 32 + np.sqrt(2.0 ** -8 * ((N - 1) / 16 + 1 / 12))
         e_ocp, e_opt = res[n, "ocp"]["e"], res[n, "opt"]["e"]
         amax = np.stack([np.abs(W[:, sl]).max(1) for sl in S.block_slices(W.shape[1], N)], 1)
-        live = amax > 0
-        m = amax[live] / np.ldexp(1.0, S.floor_log2(amax[live]))
-        down = (e_opt - e_ocp)[live] == -1
-        med = f"{np.median(m[down]):.3f}" if down.any() else "-"
-        md.append(f"| {SHORT[n]} | {N} | {m_star:.3f} | {np.log2(m_star):.1%} of {live.sum()} = "
-                  f"{np.log2(m_star) * live.sum():.0f} | {down.sum()} | {med} |")
+        neg = block_max_signed(W, N) < 0
+        groups = [("+", ~neg, 31 / 32), ("-", neg, 1.0)] if f.grid_neg is not None else [("any", neg | ~neg, 31 / 32)]
+        for label, sel, c in groups:
+            sel = sel & (amax > 0)
+            m_star = c + np.sqrt(2.0 ** -8 * ((N - 1) / 16 + 1 / 12))
+            m = amax[sel] / np.ldexp(1.0, S.floor_log2(amax[sel]))
+            down = (e_opt - e_ocp)[sel] == -1
+            med = f"{np.median(m[down]):.3f}" if down.any() else "-"
+            md.append(f"| {SHORT[n]} | {label} | {N} | {m_star:.3f} | {np.log2(m_star):.1%} of {sel.sum()} = "
+                      f"{np.log2(m_star) * sel.sum():.0f} | {down.sum()} | {med} |")
     md.append("")
 
     # 2e. which offsets do the searches pick?
