@@ -1,0 +1,4 @@
+$ python make_figures.py
+# exit 0, 1.8 s
+
+wrote ['fig1_weight_distribution.png', 'fig2_error_model.png', 'fig3_predicted_vs_exhaustive.png', 'fig4_sensitivity.png', 'fig5_scale_tradeoff.png']

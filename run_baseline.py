@@ -2,7 +2,8 @@
 
     python run_baseline.py                          # dataset C from data/
     python run_baseline.py --W path/W_A.npy --tag A # any other matrix
-    python run_baseline.py --variants               # also E4M1 vmax=192 and BFP6 one-block-per-row
+    python run_baseline.py --variants               # also the sensitivity variants (E4M1 192/256, BFP 32|8|5, ...)
+    python run_baseline.py --mode wx                # W+X: X quantized too (secondary experiment, D2)
 
 Writes results/baseline_<tag>.csv and .json, plus a resumable checkpoint
 results/baseline_<tag>.ckpt.jsonl (delete it to force a fresh run).
@@ -24,19 +25,20 @@ ap.add_argument("--X", default=os.path.join(HERE, "data", "X_cal.npy"))
 ap.add_argument("--tag", default="C")
 ap.add_argument("--out", default=os.path.join(HERE, "results"))
 ap.add_argument("--variants", action="store_true")
+ap.add_argument("--mode", default="w", choices=["w", "wx"], help="w = weights only (primary), wx = W and X")
 ap.add_argument("--fresh", action="store_true", help="ignore an existing checkpoint")
 args = ap.parse_args()
 
 W = np.load(args.W).astype(np.float64)
 X = np.load(args.X).astype(np.float64)
 names = list(FORMATS) + (list(VARIANTS) if args.variants else [])
-base = os.path.join(args.out, f"baseline_{args.tag}")
+base = os.path.join(args.out, f"baseline_{args.tag}" + ("_wx" if args.mode == "wx" else ""))
 ckpt = base + ".ckpt.jsonl"
 if args.fresh and os.path.exists(ckpt):
     os.remove(ckpt)
 
-print(f"W {W.shape}  X {X.shape}  formats {len(names)}  dataset {args.tag}")
-rows = exhaustive(W, X, names=names, checkpoint=ckpt)
+print(f"W {W.shape}  X {X.shape}  formats {len(names)}  dataset {args.tag}  mode {args.mode}")
+rows = exhaustive(W, X, names=names, checkpoint=ckpt, mode=args.mode)
 save_results(rows, base)
 
 # ---- readable summary --------------------------------------------------------------------
@@ -48,10 +50,12 @@ for n in names:
     cells = "".join(f"{100*by[n,p]['y_rel_err']:9.3f} [{100*by[n,p]['y_rel_err_heldout']:5.2f}]" for p in pols)
     print(f"{n:17s}{cells}{by[n,'ocp']['bits_per_elem']:9.2f}")
 
-print("\nSaturated / zeroed / subnormal element counts under the class 'ocp' rule:")
+print("\nElement counts under the class 'ocp' rule (Lecture 19 definitions: range = out of range"
+      " before rounding, saturated = rounded value clipped):")
 for n in names:
     r = by[n, "ocp"]
-    print(f"  {n:17s} saturated {r['n_saturated']:5d}   zeroed {r['n_zeroed']:5d}   subnormal {r['n_subnormal']:5d}")
+    print(f"  {n:17s} range {r['n_range']:5d}   saturated {r['n_saturated']:5d}   zeroed {r['n_zeroed']:5d}"
+          f"   subnormal {r['n_subnormal']:5d}   clamped blocks {r['n_scale_clamped']:3d}")
 
 print("\nRanking, each format at its best policy (Y error on all of X_cal):")
 for i, (f, p, v) in enumerate(ranking(rows, policies=("ocp", "ceil", "opt")), 1):
@@ -60,10 +64,12 @@ print("Ranking under the class 'ocp' rule only:")
 for i, (f, p, v) in enumerate(ranking(rows, policies=("ocp",)), 1):
     print(f"  {i}. {f:17s} {100*v:6.3f}%")
 
-same = [p for p in pols if by["BFP6", p]["y_rel_err"] == by["MXINT6", p]["y_rel_err"]]
-same_cross = by["BFP6", "ceil"]["y_rel_err"] == by["MXINT6", "ceil"]["y_rel_err"]
-print(f"\nBFP6 vs MXINT6: identical under policies {same}; BFP6 default (ceil) == MXINT6 ceil: {same_cross}")
+if ("BFP6_g32e8", "ocp") in by:
+    same = [p for p in pols if by["BFP6_g32e8", p]["y_rel_err"] == by["MXINT6", p]["y_rel_err"]]
+    print(f"\nBFP 32|8|5 (BFP6_g32e8) vs MXINT6: identical under policies {same}")
+print(f"BFP6 (16|4|5, the candidate) vs MXINT6 under ocp: "
+      f"{100*by['BFP6','ocp']['y_rel_err']:.3f}% vs {100*by['MXINT6','ocp']['y_rel_err']:.3f}%")
 nr = sum(r["n_roundings"] for r in rows)
 nm = sum(r["n_macs"] for r in rows)
-print(f"Cost of this exhaustive run: {nr:,} element roundings + {nm:,} MACs for (W - Wq) X")
+print(f"Cost of this exhaustive run: {nr:,} element roundings + {nm:,} MACs")
 print(f"\nSaved {base}.csv / .json")

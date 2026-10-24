@@ -1,0 +1,26 @@
+$ python validate_predictor.py
+# exit 0, 1.5 s
+
+W_C: output SQNR (dB)   exhaustive   predicted   diff
+  MXFP6_E2M3        30.23       30.18   -0.05
+  BFP6              29.21       27.65   -1.56
+  MXINT6            27.86       27.87   +0.02
+  MXFP6_E3M2        25.29       25.24   -0.05
+  MXFP6_E4M1        19.10       18.88   -0.22
+  winner exhaustive=MXFP6_E2M3 predicted=MXFP6_E2M3  spearman=0.90
+  time: exhaustive 15.4 ms | predictor stats pass 1.2 ms + scoring 5 formats 0.20 ms
+  ops: exhaustive ~ 5 formats x (10000 roundings + 2560000 MACs for Q(W)X)
+       predictor  ~ 1 x 10000 binnings + 5 formats x (1028 bin evaluations + 400 block-max roundings)
+
+Synthetic matrices, 10 trials each, random X ~ N(0, 0.1^2) with random column gains
+  kind       top-1 agree  regret dB  spearman  exhaustive winners
+  gauss             7/10      0.031      0.84  {'BFP6': 3, 'MXFP6_E2M3': 7}
+  laplace          10/10      0.000      0.90  {'MXFP6_E2M3': 10}
+  t3               10/10      0.000      0.88  {'MXFP6_E2M3': 10}
+  t6               10/10      0.000      0.90  {'MXFP6_E2M3': 10}
+  uniform          10/10      0.000      1.00  {'MXINT6': 10}
+  sparse90          0/10      1.250      0.90  {'BFP6': 10}
+  outliers          9/10      0.156      0.82  {'MXFP6_E3M2': 4, 'MXFP6_E2M3': 5, 'BFP6': 1}
+  rowscale          8/10      0.042      0.90  {'MXFP6_E2M3': 8, 'BFP6': 2}
+  W_C_perm         10/10      0.000      0.90  {'MXFP6_E2M3': 10}
+  overall top-1 agreement 74/90

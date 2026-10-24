@@ -1,0 +1,12 @@
+format,role,block,blocks/row (K=100),exp bits,exp field range,total bits (100x100),bits/elem
+MXFP6_E3M2,candidate,32,4,8,-127..127,63200,6.32
+MXFP6_E2M3,candidate,32,4,8,-127..127,63200,6.32
+MXFP6_E4M1,candidate,32,4,8,-127..127,63200,6.32
+MXINT6,candidate,32,4,8,-127..127,63200,6.32
+BFP6,candidate,16,7,4,-8..7,62800,6.28
+MXFP6_E4M1_v192,variant,32,4,8,-127..127,63200,6.32
+MXFP6_E4M1_nan1,variant,32,4,8,-127..127,63200,6.32
+BFP6_g32e8,variant,32,4,8,-127..127,63200,6.32
+BFP6_b32_ceil,variant,32,4,8,-127..127,63200,6.32
+BFP6_row,variant,row,1,8,-127..127,60800,6.08
+MXINT6_sym,variant,32,4,8,-127..127,63200,6.32

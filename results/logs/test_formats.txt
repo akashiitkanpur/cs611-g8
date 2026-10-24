@@ -1,0 +1,35 @@
+$ python test_formats.py
+# exit 0, 0.6 s
+
+PASS  test_all_zero_block_scale_one
+PASS  test_bfp6_variants_vs_mxint6
+PASS  test_ceil_never_saturates_and_opt_never_worse
+PASS  test_dataset_C_matches_prototype
+PASS  test_exhaustive_and_checkpoint
+PASS  test_exponent_field_clamped
+PASS  test_fp_grid_limits
+PASS  test_fp_round_matches_bit_grid
+PASS  test_just_below_power_of_two
+PASS  test_metrics_basic
+PASS  test_mxint6_codes_and_ties
+PASS  test_one_ulp_below_power_of_two
+PASS  test_power_of_two_block_max
+PASS  test_rne_tie_inside_quantize
+PASS  test_saturation_no_inf_nan
+PASS  test_sign_symmetry
+PASS  test_storage
+PASS  test_tail_block_of_four
+PASS  test_v2_bfp6_4bit_exponent_clamp
+PASS  test_v2_bfp6_layout_and_hand_example
+PASS  test_v2_bfp6_on_dataset_C
+PASS  test_v2_bfp_32_8_5_identical_to_mxint6_sym
+PASS  test_v2_checkpoint_rejects_stale_rows
+PASS  test_v2_e4m1_one_nan_variant
+PASS  test_v2_exhaustive_wx_mode
+PASS  test_v2_metrics_with_quantized_X
+PASS  test_v2_mxint6_twos_complement
+PASS  test_v2_quantize_X_blocks_run_down_columns
+PASS  test_v2_range_vs_saturated_counts
+PASS  test_v2_true_storage_per_format
+
+30/30 passed

@@ -23,28 +23,52 @@ Matrices: `W_C` 100x100, `gauss` 64x100, `laplace` 64x100, `student_t3` 64x100, 
 | MXFP6_E4M1 | MXFP6_E4M1 | opt | 7 | 7/7 | 7/7 | 0 |
 | MXFP6_E4M1 | MXFP6_E4M1 | opt + H | 7 | 7/7 | 7/7 | 0 |
 | MXFP6_E4M1 | MXFP6_E4M1 | search -3..+3 | 7 | 7/7 | 7/7 | 0 |
+| MXINT6 | MXINT6 | ocp | 7 | 7/7 | 7/7 | 0 |
+| MXINT6 | MXINT6 | ceil | 7 | 0/7 | 0/7 | 798 |
+| MXINT6 | MXINT6 | opt | 7 | 7/7 | 7/7 | 0 |
+| MXINT6 | MXINT6 | opt + H | 7 | 7/7 | 7/7 | 0 |
+| MXINT6 | MXINT6 | search -3..+3 | 7 | 7/7 | 7/7 | 0 |
+| BFP6 | BFP6 | ocp | 7 | 7/7 | 7/7 | 0 |
+| BFP6 | BFP6 | ceil | 7 | 7/7 | 7/7 | 0 |
+| BFP6 | BFP6 | opt | 7 | 7/7 | 7/7 | 0 |
+| BFP6 | BFP6 | opt + H | 7 | 7/7 | 7/7 | 0 |
+| BFP6 | BFP6 | search -3..+3 | 7 | 7/7 | 7/7 | 0 |
 | MXFP6_E4M1_v192 | MXFP6_E4M1_v192 | ocp | 7 | 7/7 | 7/7 | 0 |
 | MXFP6_E4M1_v192 | MXFP6_E4M1_v192 | ceil | 7 | 7/7 | 7/7 | 0 |
 | MXFP6_E4M1_v192 | MXFP6_E4M1_v192 | opt | 7 | 7/7 | 7/7 | 0 |
 | MXFP6_E4M1_v192 | MXFP6_E4M1_v192 | opt + H | 7 | 7/7 | 7/7 | 0 |
 | MXFP6_E4M1_v192 | MXFP6_E4M1_v192 | search -3..+3 | 7 | 7/7 | 7/7 | 0 |
-| MXINT6_sym | MXINT6 | ocp | 7 | 7/7 | 7/7 | 0 |
-| MXINT6_sym | MXINT6 | ceil | 7 | 7/7 | 7/7 | 0 |
-| MXINT6_sym | MXINT6 | opt | 7 | 7/7 | 7/7 | 0 |
-| MXINT6_sym | MXINT6 | opt + H | 7 | 7/7 | 7/7 | 0 |
-| MXINT6_sym | MXINT6 | search -3..+3 | 7 | 7/7 | 7/7 | 0 |
-| BFP6_b32_ceil | BFP6 | ocp | 7 | 7/7 | 7/7 | 0 |
-| BFP6_b32_ceil | BFP6 | ceil | 7 | 7/7 | 7/7 | 0 |
-| BFP6_b32_ceil | BFP6 | opt | 7 | 7/7 | 7/7 | 0 |
-| BFP6_b32_ceil | BFP6 | opt + H | 7 | 7/7 | 7/7 | 0 |
-| BFP6_b32_ceil | BFP6 | search -3..+3 | 7 | 7/7 | 7/7 | 0 |
-| BFP6 | MXINT6 block=16 | ocp | 3 | 3/3 | 3/3 | 0 |
-| BFP6 | MXINT6 block=16 | ceil | 3 | 3/3 | 3/3 | 0 |
-| BFP6 | MXINT6 block=16 | opt | 3 | 3/3 | 3/3 | 0 |
-| BFP6 | MXINT6 block=16 | opt + H | 3 | 3/3 | 3/3 | 0 |
-| BFP6 | MXINT6 block=16 | search -3..+3 | 3 | 3/3 | 3/3 | 0 |
+| MXFP6_E4M1_nan1 | MXFP6_E4M1_nan1 | ocp | 7 | 7/7 | 7/7 | 0 |
+| MXFP6_E4M1_nan1 | MXFP6_E4M1_nan1 | ceil | 7 | 7/7 | 7/7 | 0 |
+| MXFP6_E4M1_nan1 | MXFP6_E4M1_nan1 | opt | 7 | 7/7 | 7/7 | 0 |
+| MXFP6_E4M1_nan1 | MXFP6_E4M1_nan1 | opt + H | 7 | 7/7 | 7/7 | 0 |
+| MXFP6_E4M1_nan1 | MXFP6_E4M1_nan1 | search -3..+3 | 7 | 7/7 | 7/7 | 0 |
+| MXINT6_sym | MXINT6_sym | ocp | 7 | 7/7 | 7/7 | 0 |
+| MXINT6_sym | MXINT6_sym | ceil | 7 | 7/7 | 7/7 | 0 |
+| MXINT6_sym | MXINT6_sym | opt | 7 | 7/7 | 7/7 | 0 |
+| MXINT6_sym | MXINT6_sym | opt + H | 7 | 7/7 | 7/7 | 0 |
+| MXINT6_sym | MXINT6_sym | search -3..+3 | 7 | 7/7 | 7/7 | 0 |
+| BFP6_g32e8 | BFP6_g32e8 | ocp | 7 | 7/7 | 7/7 | 0 |
+| BFP6_g32e8 | BFP6_g32e8 | ceil | 7 | 7/7 | 7/7 | 0 |
+| BFP6_g32e8 | BFP6_g32e8 | opt | 7 | 7/7 | 7/7 | 0 |
+| BFP6_g32e8 | BFP6_g32e8 | opt + H | 7 | 7/7 | 7/7 | 0 |
+| BFP6_g32e8 | BFP6_g32e8 | search -3..+3 | 7 | 7/7 | 7/7 | 0 |
+| BFP6_b32_ceil | BFP6_b32_ceil | ocp | 7 | 7/7 | 7/7 | 0 |
+| BFP6_b32_ceil | BFP6_b32_ceil | ceil | 7 | 7/7 | 7/7 | 0 |
+| BFP6_b32_ceil | BFP6_b32_ceil | opt | 7 | 7/7 | 7/7 | 0 |
+| BFP6_b32_ceil | BFP6_b32_ceil | opt + H | 7 | 7/7 | 7/7 | 0 |
+| BFP6_b32_ceil | BFP6_b32_ceil | search -3..+3 | 7 | 7/7 | 7/7 | 0 |
+| BFP6 | MXINT6_sym block=16 | ocp | 3 | 3/3 | 3/3 | 0 |
+| BFP6 | MXINT6_sym block=16 | ceil | 3 | 3/3 | 3/3 | 0 |
+| BFP6 | MXINT6_sym block=16 | opt | 3 | 3/3 | 3/3 | 0 |
+| BFP6 | MXINT6_sym block=16 | opt + H | 3 | 3/3 | 3/3 | 0 |
+| BFP6 | MXINT6_sym block=16 | search -3..+3 | 3 | 3/3 | 3/3 | 0 |
 
-formats.py version: v1; its MXINT6 is symmetric [-31, 31]. Formats are matched by definition (mine `MXINT6` = two's complement, D10 of 23 Oct); not in this formats.py: MXINT6, BFP6, MXFP6_E4M1_nan1, BFP6_g32e8. Exponents are compared on non-zero blocks (an all-zero block gets exponent 0 in both); for the BFP rows only up to a constant offset (formats.py v1 stored the exponent of the integer code, 4 lower than mine; v2 stores the same E). The `BFP6 | ... block=16` rows compare D1 BFP6 with the symmetric MXINT6 grid in blocks of 16 and skip matrices where the 4-bit exponent clamp [-8, 7] could bind (every block exponent must be at least 3 from the limits). Signed zeros are not counted: an integer code has one zero, so `scale_opt.py` decodes MXINT6 to +0 where formats.py returns -0.
+formats.py version: v2.1; its MXINT6 is two's complement. Formats are matched by definition (mine `MXINT6` = two's complement, D10 of 23 Oct). Exponents are compared on non-zero blocks (an all-zero block gets exponent 0 in both); for the BFP rows only up to a constant offset (formats.py v1 stored the exponent of the integer code, 4 lower than mine; v2 stores the same E). The `BFP6 | ... block=16` rows compare D1 BFP6 with the symmetric MXINT6 grid in blocks of 16 and skip matrices where the 4-bit exponent clamp [-8, 7] could bind (every block exponent must be at least 3 from the limits). Signed zeros are not counted: an integer code has one zero, so `scale_opt.py` decodes MXINT6 to +0 where formats.py returns -0.
+
+**Two's-complement MXINT6 under `ceil` differs on purpose (open decision).** formats.py's `ceil` (and Siddhant's reference) moves the scale up whenever amax > (31/16) 2^e, whatever the sign of the maximum. For two's complement a negative maximum down to -2 * 2^e is representable (code -32), so nothing clips and `scale_opt.py` keeps the lower scale, which is the literal 'smallest scale that clips nothing'. The class-rule and `opt` rows agree. This row is left out of the 'differing elements' total the script prints.
+
+Counters on `W_C` (n_range = out of range before rounding, n_saturated = rounded value beyond vmax, n_zeroed), compared with formats.py v2's stats for every pair above under ocp, ceil and opt: 29/30 identical. Differences: MXINT6 ceil: mine (0, 0, 902) vs formats.py (0, 0, 905).
 
 Third implementation, Siddhant's scalar reference (`verification/reference_impl.py`, exact fractions, written without reading formats.py), on W_C. Differing elements per policy, and signed zeros (-0 vs +0) in brackets:
 
